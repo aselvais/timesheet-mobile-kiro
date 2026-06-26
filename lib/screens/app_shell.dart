@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'about_screen.dart';
 import 'calendar_screen.dart';
 import 'help_screen.dart';
 import 'returns_screen.dart';
+import 'settings_screen.dart';
 import 'task_list_screen.dart';
+import '../services/app_settings.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  final AppSettings settings;
+  const AppShell({super.key, required this.settings});
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -30,7 +32,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       CalendarScreen(key: _calendarKey),
       ReturnsScreen(key: _returnsKey),
       const HelpScreen(),
-      const AboutScreen(),
+      SettingsScreen(settings: widget.settings),
     ];
     WidgetsBinding.instance.addObserver(this);
   }
@@ -108,8 +110,8 @@ class _BottomNav extends StatelessWidget {
                   label: 'Returns', selected: index == 2, onTap: () => onTap(2)),
               _NavItem(icon: Icons.help_outline, activeIcon: Icons.help,
                   label: 'Help', selected: index == 3, onTap: () => onTap(3)),
-              _NavItem(icon: Icons.info_outline, activeIcon: Icons.info,
-                  label: 'About', selected: index == 4, onTap: () => onTap(4)),
+              _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings,
+                  label: 'Settings', selected: index == 4, onTap: () => onTap(4)),
             ],
           ),
         ),

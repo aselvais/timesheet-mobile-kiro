@@ -12,12 +12,15 @@ import 'repositories/task_repository.dart';
 import 'repositories/time_log_repository.dart';
 import 'screens/app_shell.dart';
 import 'screens/task_detail_screen.dart';
+import 'services/app_settings.dart';
 import 'widgets/orphaned_session_handler.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+final appSettings = AppSettings();
 
-  // Make the system nav bar transparent and let Flutter handle the padding
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await appSettings.load();
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     systemNavigationBarColor: Color(0xFF1A1A26),
     systemNavigationBarIconBrightness: Brightness.light,
@@ -31,19 +34,27 @@ void main() {
   final taskRepo = DriftTaskRepository(database: db)
     ..tagRepository = tagRepo;
   final timeLogRepo = DriftTimeLogRepository(database: db);
-  runApp(TimeTrackerApp(taskRepo: taskRepo, timeLogRepo: timeLogRepo, tagRepo: tagRepo));
+
+  runApp(TimeTrackerApp(
+    taskRepo: taskRepo,
+    timeLogRepo: timeLogRepo,
+    tagRepo: tagRepo,
+    settings: appSettings,
+  ));
 }
 
 class TimeTrackerApp extends StatelessWidget {
   final TaskRepository taskRepo;
   final TimeLogRepository timeLogRepo;
   final TagRepository tagRepo;
+  final AppSettings settings;
 
   const TimeTrackerApp({
     super.key,
     required this.taskRepo,
     required this.timeLogRepo,
     required this.tagRepo,
+    required this.settings,
   });
 
   @override
@@ -55,47 +66,54 @@ class TimeTrackerApp extends StatelessWidget {
         RepositoryProvider<TagRepository>.value(value: tagRepo),
       ],
       child: BlocProvider(
-        create: (_) => TaskBloc(taskRepository: taskRepo),
-        child: MaterialApp(
-          title: 'Time Tracker',
-          debugShowCheckedModeBanner: false,
-          theme: _buildTheme(),
-          home: const OrphanedSessionHandler(child: AppShell()),
-          routes: {'/task-detail': (_) => const TaskDetailScreen()},
+        create: (_) => TaskBloc(taskRepository: taskRepo, settings: settings),
+        child: ListenableBuilder(
+          listenable: settings,
+          builder: (context, _) => MaterialApp(
+            title: 'Time Tracker',
+            debugShowCheckedModeBanner: false,
+            theme: _buildTheme(Brightness.light),
+            darkTheme: _buildTheme(Brightness.dark),
+            themeMode: settings.isDark ? ThemeMode.dark : ThemeMode.light,
+            home: OrphanedSessionHandler(child: AppShell(settings: settings)),
+            routes: {'/task-detail': (_) => const TaskDetailScreen()},
+          ),
         ),
       ),
     );
   }
 
-  ThemeData _buildTheme() {
+  static ThemeData _buildTheme(Brightness brightness) {
     const seed = Color(0xFF6C63FF);
+    final isDark = brightness == Brightness.dark;
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
       colorScheme: ColorScheme.fromSeed(
         seedColor: seed,
-        brightness: Brightness.dark,
-        surface: const Color(0xFF12121A),
-        surfaceContainerHighest: const Color(0xFF1E1E2C),
+        brightness: brightness,
+        surface: isDark ? const Color(0xFF12121A) : Colors.grey.shade50,
+        surfaceContainerHighest: isDark ? const Color(0xFF1E1E2C) : Colors.white,
       ),
-      scaffoldBackgroundColor: const Color(0xFF12121A),
+      scaffoldBackgroundColor: isDark ? const Color(0xFF12121A) : Colors.grey.shade50,
       cardTheme: CardThemeData(
-        color: const Color(0xFF1E1E2C),
-        elevation: 0,
+        color: isDark ? const Color(0xFF1E1E2C) : Colors.white,
+        elevation: isDark ? 0 : 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF12121A),
+      appBarTheme: AppBarTheme(
+        backgroundColor: isDark ? const Color(0xFF12121A) : Colors.grey.shade50,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          color: Colors.white,
+          color: isDark ? Colors.white : Colors.black87,
           fontSize: 22,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
         ),
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: seed,
@@ -112,14 +130,17 @@ class TimeTrackerApp extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF2A2A3C),
+        fillColor: isDark ? const Color(0xFF2A2A3C) : Colors.grey.shade100,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+        hintStyle: TextStyle(
+            color: isDark ? Colors.white.withOpacity(0.3) : Colors.black38),
       ),
-      dividerTheme: const DividerThemeData(color: Color(0xFF2A2A3C), thickness: 1),
+      dividerTheme: DividerThemeData(
+          color: isDark ? const Color(0xFF2A2A3C) : Colors.grey.shade200,
+          thickness: 1),
     );
   }
 }

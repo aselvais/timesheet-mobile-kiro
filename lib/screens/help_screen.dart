@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
+
+  Future<void> _openUrl() async {
+    final uri = Uri.parse('https://antidot.ca');
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +21,7 @@ class HelpScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Help',
+                    Text('Help & About',
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -29,6 +35,100 @@ class HelpScreen extends StatelessWidget {
                             color: Colors.white.withOpacity(0.4),
                             fontSize: 14)),
                   ],
+                ),
+              ),
+            ),
+            // About section at top
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E2C),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6C63FF).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.timer,
+                                size: 24, color: Color(0xFF6C63FF)),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Time Tracker',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white)),
+                                Text('v1.0.0',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white.withOpacity(0.4))),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        'A simple yet powerful time tracking app for '
+                        'freelancers. Track time, organize with tags, set '
+                        'hourly rates, and export reports — all private '
+                        'and offline.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.6),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      GestureDetector(
+                        onTap: _openUrl,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00E5A0).withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.code,
+                                  color: Color(0xFF00E5A0), size: 16),
+                            ),
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text('Developed by Antidot Inc.',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white70)),
+                            ),
+                            const Text('antidot.ca',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF6C63FF),
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Color(0xFF6C63FF))),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.open_in_new,
+                                color: Color(0xFF6C63FF), size: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

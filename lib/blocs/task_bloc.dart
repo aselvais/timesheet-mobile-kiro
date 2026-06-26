@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/task_summary.dart';
 import '../repositories/task_repository.dart';
+import '../services/app_settings.dart';
 
 part 'task_event.dart';
 part 'task_state.dart';
@@ -11,10 +12,12 @@ part 'task_state.dart';
 /// Manages task list state: loading, creation, and deletion.
 class TaskBloc extends Bloc<TaskEvent, TaskState> {
   final TaskRepository _taskRepository;
+  final AppSettings? _settings;
   StreamSubscription<List<TaskSummary>>? _tasksSubscription;
 
-  TaskBloc({required TaskRepository taskRepository})
+  TaskBloc({required TaskRepository taskRepository, AppSettings? settings})
       : _taskRepository = taskRepository,
+        _settings = settings,
         super(TasksLoading()) {
     on<LoadTasksEvent>(_onLoad);
     on<CreateTaskEvent>(_onCreate);
@@ -53,8 +56,12 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     }
 
     try {
-      await _taskRepository.createTask(trimmed);
-      // The watchTasksWithTotals stream will emit the updated list automatically.
+      final task = await _taskRepository.createTask(trimmed);
+      // Apply default hourly rate if set
+      final defaultRate = _settings?.defaultHourlyRate;
+      if (defaultRate != null) {
+        await _taskRepository.updateHourlyRate(task.id, defaultRate);
+      }
     } catch (e) {
       emit(TaskError(e.toString()));
     }
