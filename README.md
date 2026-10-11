@@ -2,6 +2,9 @@
 
 A new Flutter project.
 
+![alt text](docs/screenshot01.jpg)
+
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
